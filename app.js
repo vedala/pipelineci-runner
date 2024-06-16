@@ -2,8 +2,8 @@ const express = require("express");
 const app = express();
 const port = 4000;
 
-app.get("/", (req, res) => {
-  res.send("Working!");
+app.post("/run_ci", (req, res) => {
+  res.send("CI checks successful.");
 });
 
 app.listen(port, () => {
