@@ -1,5 +1,6 @@
 import dotenv from "dotenv";
 import { App } from "octokit";
+import { Octokit } from "@octokit/core";
 import express from "express";
 import fs from "fs";
 import simpleGit from "simple-git";
@@ -9,6 +10,8 @@ const app = express();
 const port = 4000;
 
 dotenv.config();
+
+app.use(express.json());
 
 const appId = process.env.GITHUB_APP_IDENTIFIER;
 const webhookSecret = process.env.WEBHOOK_SECRET;
@@ -26,10 +29,14 @@ const ghApp = new App({
   },
 });
 
-console.log("ghApp=", ghApp);
 app.post("/run_ci", async (req, res) => {
   console.log("POST /run_ci called");
-  const ghAppResponse = await ghApp.request("GET /repos/{owner}/{repo}/zipball", {
+
+  const installationToken = req.body.token;
+  const octokitClient = new Octokit({
+    auth: installationToken
+  });
+  const ghAppResponse = await octokitClient.request("GET /repos/{owner}/{repo}/zipball", {
     owner: 'userpipelineci',
     repo: 'private_repo',
     headers: {
@@ -37,7 +44,7 @@ app.post("/run_ci", async (req, res) => {
     }
   });
 
-  console("ghAppResponse=", ghAppResponse);
+  console.log("ghAppResponse=", ghAppResponse);
   // const git = simpleGit();
   // git.clone(repoUrl, localPath)
   //   .then(() => console.log("Repository cloned successfully"))
