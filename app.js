@@ -10,6 +10,8 @@ const port = 4000;
 
 dotenv.config();
 
+app.use(express.json());
+
 const appId = process.env.GITHUB_APP_IDENTIFIER;
 const webhookSecret = process.env.WEBHOOK_SECRET;
 const privateKeyPath = process.env.PRIVATE_KEY_PATH;
@@ -29,6 +31,9 @@ const ghApp = new App({
 console.log("ghApp=", ghApp);
 app.post("/run_ci", async (req, res) => {
   console.log("POST /run_ci called");
+  const installationToken = req.body.token;
+console.log("installationToken=", installationToken);
+
   const ghAppResponse = await ghApp.request("GET /repos/{owner}/{repo}/zipball", {
     owner: 'userpipelineci',
     repo: 'private_repo',
@@ -37,7 +42,7 @@ app.post("/run_ci", async (req, res) => {
     }
   });
 
-  console("ghAppResponse=", ghAppResponse);
+  console.log("ghAppResponse=", ghAppResponse);
   // const git = simpleGit();
   // git.clone(repoUrl, localPath)
   //   .then(() => console.log("Repository cloned successfully"))
