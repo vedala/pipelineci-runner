@@ -1,5 +1,6 @@
 import dotenv from "dotenv";
 import { App } from "octokit";
+import { Octokit } from "@octokit/core";
 import express from "express";
 import fs from "fs";
 import simpleGit from "simple-git";
@@ -28,13 +29,14 @@ const ghApp = new App({
   },
 });
 
-console.log("ghApp=", ghApp);
 app.post("/run_ci", async (req, res) => {
   console.log("POST /run_ci called");
-  const installationToken = req.body.token;
-console.log("installationToken=", installationToken);
 
-  const ghAppResponse = await ghApp.request("GET /repos/{owner}/{repo}/zipball", {
+  const installationToken = req.body.token;
+  const octokitClient = new Octokit({
+    auth: installationToken
+  });
+  const ghAppResponse = await octokitClient.request("GET /repos/{owner}/{repo}/zipball", {
     owner: 'userpipelineci',
     repo: 'private_repo',
     headers: {
