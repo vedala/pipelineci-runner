@@ -5,6 +5,7 @@ import express from "express";
 import fs from "fs";
 import simpleGit from "simple-git";
 import path from 'path';
+import download from "./download.js";
 
 const app = express();
 const port = 4000;
@@ -36,7 +37,7 @@ app.post("/run_ci", async (req, res) => {
   const octokitClient = new Octokit({
     auth: installationToken
   });
-  const ghAppResponse = await octokitClient.request("GET /repos/{owner}/{repo}/zipball", {
+  const ghAppResponse = await octokitClient.request("GET /repos/{owner}/{repo}/tarball", {
     owner: 'userpipelineci',
     repo: 'private_repo',
     headers: {
@@ -45,6 +46,18 @@ app.post("/run_ci", async (req, res) => {
   });
 
   console.log("ghAppResponse=", ghAppResponse);
+
+  const urlToDownload = ghAppResponse.url;
+
+  console.log("Downloading", urlToDownload);
+  try {
+    await download(urlToDownload, "myrepo");
+    console.log("Download done");
+  } catch (e) {
+    console.log("Download failed");
+    console.log(e.message);
+  }
+
   // const git = simpleGit();
   // git.clone(repoUrl, localPath)
   //   .then(() => console.log("Repository cloned successfully"))
