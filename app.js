@@ -17,8 +17,8 @@ app.use(express.json());
 const appId = process.env.GITHUB_APP_IDENTIFIER;
 const webhookSecret = process.env.WEBHOOK_SECRET;
 const privateKeyPath = process.env.PRIVATE_KEY_PATH;
-const repoUrl = process.env.PRIVATE_REPO_URL;
-const localPath = process.env.REPO_CLONE_DIR_NAME;
+const repoToClone = process.env.REPO_TO_CLONE;
+const repoOwner = process.env.REPO_OWNER;
 const tarballFileName = process.env.TARBALL_FILE_NAME;
 
 const privateKey = fs.readFileSync(privateKeyPath, "utf8");
@@ -39,8 +39,8 @@ app.post("/run_ci", async (req, res) => {
     auth: installationToken
   });
   const ghAppResponse = await octokitClient.request("GET /repos/{owner}/{repo}/tarball", {
-    owner: 'userpipelineci',
-    repo: 'private_repo',
+    owner: repoOwner,
+    repo: repoToClone,
     headers: {
       'X-GitHub-Api-Version': '2022-11-28'
     }
