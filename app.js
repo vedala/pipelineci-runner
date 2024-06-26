@@ -19,6 +19,7 @@ const webhookSecret = process.env.WEBHOOK_SECRET;
 const privateKeyPath = process.env.PRIVATE_KEY_PATH;
 const repoUrl = process.env.PRIVATE_REPO_URL;
 const localPath = process.env.REPO_CLONE_DIR_NAME;
+const tarballFileName = process.env.TARBALL_FILE_NAME;
 
 const privateKey = fs.readFileSync(privateKeyPath, "utf8");
 
@@ -53,12 +54,12 @@ app.post("/run_ci", async (req, res) => {
   try {
     const downloadResponse = await fetch(urlToDownload);
     const downloadBody = Readable.fromWeb(downloadResponse.body);
-    await writeFile("myrepo.tar.gz", downloadBody);
+    await writeFile(tarballFileName, downloadBody);
     console.log("Download done");
 
     tar.extract(
       {
-        f: "myrepo.tar.gz"
+        f: tarballFileName
       }
     ).then( _ => { console.log("tarball has been dumped in cwd") })
   } catch (e) {
