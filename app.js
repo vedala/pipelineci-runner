@@ -6,6 +6,7 @@ import fs from "fs";
 import simpleGit from "simple-git";
 import path from 'path';
 import download from "./download.js";
+import * as tar from 'tar';
 
 const app = express();
 const port = 4000;
@@ -51,8 +52,14 @@ app.post("/run_ci", async (req, res) => {
 
   console.log("Downloading", urlToDownload);
   try {
-    await download(urlToDownload, "myrepo");
+    await download(urlToDownload, "myrepo.tar.gz");
     console.log("Download done");
+
+    tar.extract(
+      {
+        f: "myrepo.tar.gz"
+      }
+    ).then( _ => { console.log("tarball has been dumped in cwd") })
   } catch (e) {
     console.log("Download failed");
     console.log(e.message);
