@@ -3,7 +3,6 @@ import { App } from "octokit";
 import { Octokit } from "@octokit/core";
 import express from "express";
 import fs from "fs";
-import path from 'path';
 import * as tar from 'tar';
 import { writeFile } from "fs/promises";
 import { Readable } from "stream";
