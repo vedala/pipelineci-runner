@@ -3,7 +3,6 @@ import { App } from "octokit";
 import { Octokit } from "@octokit/core";
 import express from "express";
 import fs from "fs";
-import simpleGit from "simple-git";
 import path from 'path';
 import * as tar from 'tar';
 import { writeFile } from "fs/promises";
@@ -68,10 +67,6 @@ app.post("/run_ci", async (req, res) => {
     console.log(e.message);
   }
 
-  // const git = simpleGit();
-  // git.clone(repoUrl, localPath)
-  //   .then(() => console.log("Repository cloned successfully"))
-  //   .catch(err => console.error("Failed to clone repository:", err));
   res.send("CI checks successful.");
 });
 
