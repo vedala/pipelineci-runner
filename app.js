@@ -5,8 +5,9 @@ import express from "express";
 import fs from "fs";
 import simpleGit from "simple-git";
 import path from 'path';
-import download from "./download.js";
 import * as tar from 'tar';
+import { writeFile } from "fs/promises";
+import { Readable } from "stream";
 
 const app = express();
 const port = 4000;
@@ -52,7 +53,9 @@ app.post("/run_ci", async (req, res) => {
 
   console.log("Downloading", urlToDownload);
   try {
-    await download(urlToDownload, "myrepo.tar.gz");
+    const downloadResponse = await fetch(urlToDownload);
+    const downloadBody = Readable.fromWeb(downloadResponse.body);
+    await writeFile("myrepo.tar.gz", downloadBody);
     console.log("Download done");
 
     tar.extract(
