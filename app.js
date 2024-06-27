@@ -17,8 +17,8 @@ app.use(express.json());
 const appId = process.env.GITHUB_APP_IDENTIFIER;
 const webhookSecret = process.env.WEBHOOK_SECRET;
 const privateKeyPath = process.env.PRIVATE_KEY_PATH;
-const repoToClone = process.env.REPO_TO_CLONE;
-const repoOwner = process.env.REPO_OWNER;
+// const repoToClone = process.env.REPO_TO_CLONE;
+// const repoOwner = process.env.REPO_OWNER;
 const tarballFileName = process.env.TARBALL_FILE_NAME;
 
 const privateKey = fs.readFileSync(privateKeyPath, "utf8");
@@ -35,6 +35,10 @@ app.post("/run_ci", async (req, res) => {
   console.log("POST /run_ci called");
 
   const installationToken = req.body.token;
+  const eventPayload = req.body.payload;
+  const repoOwner = eventPayload.repository.owner.login;
+  const repoToClone = eventPayload.repository.name;
+
   const octokitClient = new Octokit({
     auth: installationToken
   });
