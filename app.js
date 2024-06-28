@@ -19,7 +19,7 @@ const webhookSecret = process.env.WEBHOOK_SECRET;
 const privateKeyPath = process.env.PRIVATE_KEY_PATH;
 // const repoToClone = process.env.REPO_TO_CLONE;
 // const repoOwner = process.env.REPO_OWNER;
-const tarballFileName = process.env.TARBALL_FILE_NAME;
+// const tarballFileName = process.env.TARBALL_FILE_NAME;
 
 const privateKey = fs.readFileSync(privateKeyPath, "utf8");
 
@@ -51,6 +51,9 @@ app.post("/run_ci", async (req, res) => {
   });
 
   console.log("ghAppResponse=", ghAppResponse);
+
+  const headerContentDisposition = ghAppResponse.headers['content-disposition'];
+  const tarballFileName = headerContentDisposition.replace(/^.*filename=/, "");
 
   const urlToDownload = ghAppResponse.url;
 
