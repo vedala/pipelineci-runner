@@ -28,6 +28,10 @@ const ghApp = new App({
   },
 });
 
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 app.post("/run_ci", async (req, res) => {
   console.log("POST /run_ci called");
 
@@ -66,6 +70,23 @@ app.post("/run_ci", async (req, res) => {
         f: tarballFileName
       }
     ).then( _ => { console.log("tarball has been dumped in cwd") })
+
+    console.log("Sleeping for 20 seconds");
+    await sleep(20000);
+    console.log("Sleeping done");
+
+    await octokitClient.request("POST /repos/{owner}/{repo}/statuses/{sha}", {
+      owner: repoOwner,
+      repo: repoToClone,
+      sha: eventPayload.pull_request.head.sha,
+      state: "success",
+      target_url: 'https://example.com/build/status',
+      description: 'Description from app.js',
+      context: 'ci-update/status-update',
+      headers: {
+        "x-github-api-version": "2022-11-28",
+      },
+    });
   } catch (e) {
     console.log("Download failed");
     console.log(e.message);
