@@ -7,10 +7,10 @@ import * as tar from 'tar';
 import { writeFile } from "fs/promises";
 import { Readable } from "stream";
 
-const app = express();
-const port = 4000;
-
 dotenv.config();
+
+const app = express();
+const port = process.env.RUN_ON_PORT;
 
 app.use(express.json());
 
