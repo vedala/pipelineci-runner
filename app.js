@@ -6,6 +6,7 @@ import fs from "fs";
 import * as tar from 'tar';
 import { writeFile } from "fs/promises";
 import { Readable } from "stream";
+import { exec } from "child_process";
 
 dotenv.config();
 
@@ -65,11 +66,20 @@ app.post("/run_ci", async (req, res) => {
     await writeFile(tarballFileName, downloadBody);
     console.log("Download done");
 
-    tar.extract(
+    await tar.extract(
       {
         f: tarballFileName
       }
     ).then( _ => { console.log("tarball has been dumped in cwd") })
+
+    // TODO: extract filename, use in cd below
+    const filenameNoExtension = tarballFileName.replace(/.tar.gz$/, "");
+    try {
+      exec(`cd ${filenameNoExtension}; ./pipelineci.sh`);
+    } catch(e) {
+      console.log("error=", e.message);
+      throw new Error(e);
+    }
 
     console.log("Sleeping for 20 seconds");
     await sleep(20000);
