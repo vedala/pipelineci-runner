@@ -72,7 +72,6 @@ app.post("/run_ci", async (req, res) => {
       }
     ).then( _ => { console.log("tarball has been dumped in cwd") })
 
-    // TODO: extract filename, use in cd below
     const filenameNoExtension = tarballFileName.replace(/.tar.gz$/, "");
     try {
       exec(`cd ${filenameNoExtension}; ./pipelineci.sh`);
