@@ -40,13 +40,15 @@ app.post("/run_ci", async (req, res) => {
   const eventPayload = req.body.payload;
   const repoOwner = eventPayload.repository.owner.login;
   const repoToClone = eventPayload.repository.name;
+  const branch = eventPayload.pull_request.head.ref;
 
   const octokitClient = new Octokit({
     auth: installationToken
   });
-  const ghAppResponse = await octokitClient.request("GET /repos/{owner}/{repo}/tarball", {
+  const ghAppResponse = await octokitClient.request("GET /repos/{owner}/{repo}/tarball/{ref}", {
     owner: repoOwner,
     repo: repoToClone,
+    ref: branch,
     headers: {
       'X-GitHub-Api-Version': '2022-11-28'
     }
