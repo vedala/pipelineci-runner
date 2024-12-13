@@ -5,6 +5,7 @@ import * as tar from 'tar';
 import { writeFile } from "fs/promises";
 import { Readable } from "stream";
 import { exec } from "child_process";
+import { SQSClient, ReceiveMessageCommand } from "@aws-sdk/client-sqs";
 
 dotenv.config();
 
