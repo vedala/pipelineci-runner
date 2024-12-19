@@ -29,8 +29,39 @@ app.use(express.json());
 //   return new Promise(resolve => setTimeout(resolve, ms));
 // }
 
-app.post("/run_ci", async (req, res) => {
+const getJwtToken = () => {
+  const jwtToken = jwt.sign(
+    {
+    },
+    privateKey,
+    {
+      algorithm: 'RS256',
+      expiresIn: '10m',
+      issuer: appId,
+    }
+  );
 
+  return jwtToken;
+}
+
+const getInstallationToken = async (jwtToken, installationId) => {
+  const url = `https://api.github.com/app/installations/${installationId}/access_tokens`;
+
+  const headers = {
+    Authorization: `Bearer ${jwtToken}`,
+    Accept: 'application/vnd.github+json',
+  };
+
+  try {
+    const response = await axios.post(url, {}, { headers });
+    console.log('Installation Token:', response.data.token);
+    return response.data.token;
+  } catch (error) {
+    console.error('Error fetching installation token:', error.response.data);
+  }
+}
+
+app.post("/run_ci", async (req, res) => {
 
   console.log("POST /run_ci called");
 
@@ -38,6 +69,9 @@ app.post("/run_ci", async (req, res) => {
   const repoOwner = req.body.repoOwner;
   const repoToClone = req.body.repoToClone;
   const branch = req.body.branch;
+
+  const jwtToken = getJwtToken();
+  const installationToken = await getInstallationToken(jwtToken, installationId);
 
   const octokitClient = new Octokit({
     auth: installationToken
