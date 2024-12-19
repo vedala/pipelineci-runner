@@ -147,3 +147,7 @@ app.post("/run_ci", async (req, res) => {
   // res.send("CI checks successful.");
 
 });
+
+app.listen(port, () => {
+  console.log(`PipelineCI Runner listening on port ${port}`)
+})
