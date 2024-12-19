@@ -5,7 +5,7 @@ import * as tar from 'tar';
 import { writeFile } from "fs/promises";
 import { Readable } from "stream";
 import { exec } from "child_process";
-import { SQSClient, ReceiveMessageCommand } from "@aws-sdk/client-sqs";
+import { SQSClient, ReceiveMessageCommand, DeleteMessageCommand } from "@aws-sdk/client-sqs";
 
 dotenv.config();
 
@@ -106,8 +106,45 @@ console.log("Execution status: ", executionStatus);
 
 // res.send("CI checks successful.");
 
+const receiveMessages = async () => {
+  const params = {
+    QueueUrl: queueUrl,
+    MaxNumberOfMessages: 1,
+    WaitTimeSeconds: 10,
+  };
 
-//
-// Send notification to SNS topic
-//
+  try {
+    const result = await sqsClient.send(new ReceiveMessageCommand(params));
+    if (result.Messages) {
+      result.Messages.forEach((message) => {
+          console.log('Message received:', message.Body);
 
+          // Process the message here
+          // ...
+
+          // Delete the message after processing (optional)
+          deleteMessage(message.ReceiptHandle);
+      });
+  } else {
+      console.log('No messages received');
+  }
+  } catch (error) {
+    console.error('Error receiving messages:', error);
+  }
+}
+
+const deleteMessage = async (receiptHandle) => {
+  const params = {
+    QueueUrl: queueUrl,
+    ReceiptHandle: receiptHandle,
+  };
+
+  try {
+    await SQSClient.send(new DeleteMessageCommand(params));
+    console.log('Message deleted successfully');
+  } catch (error) {
+    console.error('Error deleting message:', error);
+  }
+}
+
+receiveMessages();
