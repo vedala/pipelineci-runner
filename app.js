@@ -115,7 +115,6 @@ app.post("/", async (req, res) => {
   console.log("POST /run_ci called");
 
   const messageType = req.headers["x-amz-sns-message-type"];
-  // const snsMessage = req.body;
   console.log("messageType:", messageType);
   console.log("req.body=", req.body);
   const parsedBody = JSON.parse(req.body);
@@ -128,7 +127,7 @@ app.post("/", async (req, res) => {
     res.status(200).send("OK");
   } else if (messageType === "Notification") {
     // Handle the notification
-    console.log("Received message:", snsMessage.Message);
+    console.log("Received message:", parsedBody.Message);
   }
 
   const installationId = req.body.installationId;
