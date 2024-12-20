@@ -19,33 +19,7 @@ const webhookSecret = process.env.WEBHOOK_SECRET;
 const privateKey = process.env.GITHUB_APP_PRIVATE_KEY;
 
 app.use(express.json());
-
-// app.use((req, res, next) => {
-//   console.log("Content-Type Header:", req.headers["content-type"]);
-//   next();
-// });
-
-app.use((req, res, next) => {
-console.log("req.headeers[content-type]=", req.headers["content-type"]);
-console.log("boolean=", req.headers["content-type"].startsWith("text/plain"));
-  if (req.headers["content-type"].startsWith("text/plain")) {
-console.log("in if");
-    let rawBody = "";
-    req.on("data", (chunk) => {
-      rawBody += chunk.toString();
-console.log("rawBody=", rawBody);
-    });
-    req.on("end", () => {
-      req.body = rawBody; // Attach raw body to the request object
-      next();
-    });
-  } else {
-console.log("in else");
-    next();
-  }
-});
-
-// app.use(express.text({ type: "text/plain" }));
+app.use(express.text({ type: "text/plain" }));
 
 // const ghApp = new App({
 //   appId: appId,
@@ -76,20 +50,15 @@ const getJwtToken = () => {
 
 const getInstallationToken = async (jwtToken, installationId) => {
   const url = `https://api.github.com/app/installations/${installationId}/access_tokens`;
-console.log("url=", url);
+
   const headers = {
     Authorization: `Bearer ${jwtToken}`,
     Accept: 'application/vnd.github+json',
   };
 
-  const data = {
-    // repositories: "test-repo",
-    // permissions: {"contents":"read"}
-  };
-
   try {
     const response = await axios.post(url,
-      data,
+      {},
       { headers },
     );
     console.log('Installation Token:', response.data.token);
@@ -99,7 +68,6 @@ console.log("url=", url);
     throw error;
   }
 }
-
 
 
 // app.post("/run_ci", async (req, res) => {
