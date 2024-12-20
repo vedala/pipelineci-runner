@@ -46,11 +46,6 @@ console.log("in else");
 });
 
 // app.use(express.text({ type: "text/plain" }));
-// app.use(
-// express.text({
-//   type: (req) => req.headers["content-type"]?.startsWith("text/plain"),
-// })
-// );
 
 // const ghApp = new App({
 //   appId: appId,
@@ -81,31 +76,29 @@ const getJwtToken = () => {
 
 const getInstallationToken = async (jwtToken, installationId) => {
   const url = `https://api.github.com/app/installations/${installationId}/access_tokens`;
-
+console.log("url=", url);
   const headers = {
     Authorization: `Bearer ${jwtToken}`,
     Accept: 'application/vnd.github+json',
   };
 
+  const data = {
+    // repositories: "test-repo",
+    // permissions: {"contents":"read"}
+  };
+
   try {
-    const response = await axios.post(url, {}, { headers });
+    const response = await axios.post(url,
+      data,
+      { headers },
+    );
     console.log('Installation Token:', response.data.token);
     return response.data.token;
   } catch (error) {
     console.error('Error fetching installation token:', error.response.data);
+    throw error;
   }
 }
-
-
-// app.post("/", async (req, res) => {
-//   console.log("body=", req.body);
-//   res.status(200).send("OK");
-// })
-
-
-
-
-
 
 
 
@@ -119,21 +112,25 @@ app.post("/", async (req, res) => {
   console.log("req.body=", req.body);
   const parsedBody = JSON.parse(req.body);
 
+console.log("parsedBody=", parsedBody);
+
   if (messageType === "SubscriptionConfirmation") {
     const subscribeUrl = parsedBody.SubscribeURL;
     console.log("Confirming subscription:", subscribeUrl);
     // Confirming by making GET request
     await axios.get(subscribeUrl);
     res.status(200).send("OK");
+    return;
   } else if (messageType === "Notification") {
     // Handle the notification
     console.log("Received message:", parsedBody.Message);
   }
 
-  const installationId = req.body.installationId;
-  const repoOwner = req.body.repoOwner;
-  const repoToClone = req.body.repoToClone;
-  const branch = req.body.branch;
+  const messageObject = JSON.parse(JSON.parse(parsedBody.Message));
+  const installationId = messageObject.installationId.toString();
+  const repoOwner = messageObject.repoOwner;
+  const repoToClone = messageObject.repoToClone;
+  const branch = messageObject.branch;
 
   const jwtToken = getJwtToken();
   const installationToken = await getInstallationToken(jwtToken, installationId);
