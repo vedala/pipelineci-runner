@@ -70,8 +70,7 @@ const getInstallationToken = async (jwtToken, installationId) => {
 }
 
 
-// app.post("/run_ci", async (req, res) => {
-app.post("/", async (req, res) => {
+app.post("/run_ci", async (req, res) => {
 
   console.log("POST /run_ci called");
 
