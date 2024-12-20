@@ -2,10 +2,12 @@ import dotenv from "dotenv";
 import { App } from "octokit";
 import { Octokit } from "@octokit/core";
 import express from "express";
+import axios from "axios";
 import * as tar from 'tar';
 import { writeFile } from "fs/promises";
 import { Readable } from "stream";
 import { exec } from "child_process";
+import jwt from "jsonwebtoken";
 
 dotenv.config();
 
@@ -17,6 +19,39 @@ const webhookSecret = process.env.WEBHOOK_SECRET;
 const privateKey = process.env.GITHUB_APP_PRIVATE_KEY;
 
 app.use(express.json());
+
+// app.use((req, res, next) => {
+//   console.log("Content-Type Header:", req.headers["content-type"]);
+//   next();
+// });
+
+app.use((req, res, next) => {
+console.log("req.headeers[content-type]=", req.headers["content-type"]);
+console.log("boolean=", req.headers["content-type"].startsWith("text/plain"));
+  if (req.headers["content-type"].startsWith("text/plain")) {
+console.log("in if");
+    let rawBody = "";
+    req.on("data", (chunk) => {
+      rawBody += chunk.toString();
+console.log("rawBody=", rawBody);
+    });
+    req.on("end", () => {
+      req.body = rawBody; // Attach raw body to the request object
+      next();
+    });
+  } else {
+console.log("in else");
+    next();
+  }
+});
+
+// app.use(express.text({ type: "text/plain" }));
+// app.use(
+// express.text({
+//   type: (req) => req.headers["content-type"]?.startsWith("text/plain"),
+// })
+// );
+
 // const ghApp = new App({
 //   appId: appId,
 //   privateKey: privateKey,
@@ -61,9 +96,40 @@ const getInstallationToken = async (jwtToken, installationId) => {
   }
 }
 
-app.post("/run_ci", async (req, res) => {
+
+// app.post("/", async (req, res) => {
+//   console.log("body=", req.body);
+//   res.status(200).send("OK");
+// })
+
+
+
+
+
+
+
+
+// app.post("/run_ci", async (req, res) => {
+app.post("/", async (req, res) => {
 
   console.log("POST /run_ci called");
+
+  const messageType = req.headers["x-amz-sns-message-type"];
+  // const snsMessage = req.body;
+  console.log("messageType:", messageType);
+  console.log("req.body=", req.body);
+  const parsedBody = JSON.parse(req.body);
+
+  if (messageType === "SubscriptionConfirmation") {
+    const subscribeUrl = parsedBody.SubscribeURL;
+    console.log("Confirming subscription:", subscribeUrl);
+    // Confirming by making GET request
+    await axios.get(subscribeUrl);
+    res.status(200).send("OK");
+  } else if (messageType === "Notification") {
+    // Handle the notification
+    console.log("Received message:", snsMessage.Message);
+  }
 
   const installationId = req.body.installationId;
   const repoOwner = req.body.repoOwner;
@@ -146,6 +212,7 @@ app.post("/run_ci", async (req, res) => {
 
   // res.send("CI checks successful.");
 
+  res.status(200).send("OK");
 });
 
 app.listen(port, () => {
