@@ -93,7 +93,7 @@ console.log("parsedBody=", parsedBody);
     console.log("Received message:", parsedBody.Message);
   }
 
-  const messageObject = JSON.parse(JSON.parse(parsedBody.Message));
+  const messageObject = JSON.parse(parsedBody.Message);
   const installationId = messageObject.installationId.toString();
   const repoOwner = messageObject.repoOwner;
   const repoToClone = messageObject.repoToClone;
