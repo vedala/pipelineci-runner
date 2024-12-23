@@ -8,6 +8,7 @@ import { writeFile } from "fs/promises";
 import { Readable } from "stream";
 import { exec } from "child_process";
 import jwt from "jsonwebtoken";
+import util from "util";
 
 dotenv.config();
 
@@ -145,13 +146,17 @@ app.post("/run_ci", async (req, res) => {
     ).then( _ => { console.log("tarball has been dumped in cwd") })
 
     const filenameNoExtension = tarballFileName.replace(/.tar.gz$/, "");
+    const execPromise = util.promisify(exec);
     try {
-      exec(`cd ${filenameNoExtension}; ./pipelineci.sh`);
+      await execPromise(`cd ${filenameNoExtension}; ./pipelineci.sh`);
+
       statusMessage = "./pipelineci.sh executed successfully.";
       console.log(statusMessage);
       executionStatus = "success";
+
     } catch(e) {
-      statusMessage = `./pipelineci.sh execution failed; Error message: ${e.message}`;
+      const shortErrMessage = e.message.split("\n")[1];
+      statusMessage = `./pipelineci.sh execution failed; Error message: ${shortErrMessage}`;
       console.log(statusMessage);
       executionStatus = "failure";
     }
