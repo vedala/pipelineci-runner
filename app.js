@@ -21,17 +21,22 @@ const privateKey = process.env.GITHUB_APP_PRIVATE_KEY;
 app.use(express.json());
 app.use(express.text({ type: "text/plain" }));
 
-// const ghApp = new App({
-//   appId: appId,
-//   privateKey: privateKey,
-//   webhooks: {
-//     secret: webhookSecret
-//   },
-// });
+const updateStatus = async (octokitClient, repoOwner, repoToClone, sha, executionStatus, statusMessage) => {
 
-// function sleep(ms) {
-//   return new Promise(resolve => setTimeout(resolve, ms));
-// }
+  await octokitClient.request("POST /repos/{owner}/{repo}/statuses/{sha}", {
+    owner: repoOwner,
+    repo: repoToClone,
+    sha: sha,
+    state: executionStatus,
+    target_url: 'https://example.com/build/status',
+    description: statusMessage,
+    context: 'ci-update/status-update',
+    headers: {
+      "x-github-api-version": "2022-11-28",
+    },
+  });
+
+}
 
 const getJwtToken = () => {
   const jwtToken = jwt.sign(
@@ -79,7 +84,7 @@ app.post("/run_ci", async (req, res) => {
   console.log("req.body=", req.body);
   const parsedBody = JSON.parse(req.body);
 
-console.log("parsedBody=", parsedBody);
+  console.log("parsedBody=", parsedBody);
 
   if (messageType === "SubscriptionConfirmation") {
     const subscribeUrl = parsedBody.SubscribeURL;
@@ -98,6 +103,7 @@ console.log("parsedBody=", parsedBody);
   const repoOwner = messageObject.repoOwner;
   const repoToClone = messageObject.repoToClone;
   const branch = messageObject.branch;
+  const sha = messageObject.sha;
 
   const jwtToken = getJwtToken();
   const installationToken = await getInstallationToken(jwtToken, installationId);
@@ -123,6 +129,7 @@ console.log("parsedBody=", parsedBody);
   const urlToDownload = ghAppResponse.url;
 
   let executionStatus;
+  let statusMessage;
 
   console.log("Downloading", urlToDownload);
   try {
@@ -140,40 +147,23 @@ console.log("parsedBody=", parsedBody);
     const filenameNoExtension = tarballFileName.replace(/.tar.gz$/, "");
     try {
       exec(`cd ${filenameNoExtension}; ./pipelineci.sh`);
-      console.log("./pipelineci.sh executed successfully.")
+      statusMessage = "./pipelineci.sh executed successfully.";
+      console.log(statusMessage);
+      executionStatus = "success";
     } catch(e) {
-      console.log("./pipelineci.sh execution failed.")
-      console.log("error=", e.message);
+      statusMessage = `./pipelineci.sh execution failed; Error message: ${e.message}`;
+      console.log(statusMessage);
+      executionStatus = "failure";
     }
 
-    executionStatus = "success";
-
-    // console.log("Sleeping for 20 seconds");
-    // await sleep(20000);
-    // console.log("Sleeping done");
-
-    // await octokitClient.request("POST /repos/{owner}/{repo}/statuses/{sha}", {
-    //   owner: repoOwner,
-    //   repo: repoToClone,
-    //   sha: eventPayload.pull_request.head.sha,
-    //   state: "success",
-    //   target_url: 'https://example.com/build/status',
-    //   description: 'Description from app.js',
-    //   context: 'ci-update/status-update',
-    //   headers: {
-    //     "x-github-api-version": "2022-11-28",
-    //   },
-    // });
-
   } catch (e) {
-    console.log("Download failed");
-    console.log(e.message);
-    executionStatus = "failure"
+    statusMessage = `Download failed: Error message: ${e.message}`;
+    console.log(statusMessage);
+    executionStatus = "failure";
   }
 
   console.log("Execution status: ", executionStatus);
-
-  // res.send("CI checks successful.");
+  await updateStatus(octokitClient, repoOwner, repoToClone, sha, executionStatus, statusMessage);
 
   res.status(200).send("OK");
 });
