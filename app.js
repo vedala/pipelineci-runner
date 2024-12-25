@@ -97,6 +97,9 @@ app.post("/run_ci", async (req, res) => {
   } else if (messageType === "Notification") {
     // Handle the notification
     console.log("Received message:", parsedBody.Message);
+  } else {
+    console.log("Invalid messageType, messageType=", messageType);
+    res.status(500).send("Invalid messageType");
   }
 
   const messageObject = JSON.parse(parsedBody.Message);
