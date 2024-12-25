@@ -22,6 +22,11 @@ const privateKey = process.env.GITHUB_APP_PRIVATE_KEY;
 app.use(express.json());
 app.use(express.text({ type: "text/plain" }));
 
+app.get("/health", async (req, res) => {
+  res.status(200)
+  res.send("Runner is alive")
+});
+
 const updateStatus = async (octokitClient, repoOwner, repoToClone, sha, executionStatus, statusMessage) => {
 
   await octokitClient.request("POST /repos/{owner}/{repo}/statuses/{sha}", {
