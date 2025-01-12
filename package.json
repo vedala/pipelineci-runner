@@ -17,7 +17,12 @@
     "dotenv": "^16.4.5",
     "express": "^4.21.2",
     "jsonwebtoken": "^9.0.2",
+    "knex": "^2.5.1",
     "octokit": "^4.0.2",
+    "pg": "^8.11.3",
     "tar": "^7.4.0"
+  },
+  "devDependencies": {
+    "sqlite3": "^5.1.7"
   }
 }
