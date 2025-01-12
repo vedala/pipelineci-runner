@@ -9,6 +9,7 @@ import { Readable } from "stream";
 import { exec } from "child_process";
 import jwt from "jsonwebtoken";
 import util from "util";
+import getKnexObj from "./knexObj.js";
 
 dotenv.config();
 
@@ -41,6 +42,10 @@ const updateStatus = async (octokitClient, repoOwner, repoToClone, sha, executio
       "x-github-api-version": "2022-11-28",
     },
   });
+
+}
+
+const updateDBStatus = async () => {
 
 }
 
@@ -177,6 +182,7 @@ app.post("/run_ci", async (req, res) => {
 
   console.log("Execution status: ", executionStatus);
   await updateStatus(octokitClient, repoOwner, repoToClone, sha, executionStatus, statusMessage);
+  await updateDBStatus(executionStatus);
 
   res.status(200).send("OK");
 });
