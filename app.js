@@ -20,6 +20,8 @@ const appId = process.env.GITHUB_APP_IDENTIFIER;
 const webhookSecret = process.env.WEBHOOK_SECRET;
 const privateKey = process.env.GITHUB_APP_PRIVATE_KEY;
 
+const knex = getKnexObj();
+
 app.use(express.json());
 app.use(express.text({ type: "text/plain" }));
 
@@ -45,8 +47,20 @@ const updateStatus = async (octokitClient, repoOwner, repoToClone, sha, executio
 
 }
 
-const updateDBStatus = async () => {
+const updateDBStatus = async (runId, executionStatus) => {
+  let updateCount;
+  try {
+    updateCount = await knex(process.env.RUNS_TABLE_NAME)
+      .where('id', runId)
+      .update({
+        status: executionStatus
+      });
+  } catch(err) {
+    console.log("error updating runs table, error=", err.message);
+    throw  err;
+  }
 
+  console.log("In updateDBStatus, updateCount=", updateCount);
 }
 
 const getJwtToken = () => {
@@ -113,6 +127,7 @@ app.post("/run_ci", async (req, res) => {
   }
 
   const messageObject = JSON.parse(parsedBody.Message);
+  const runId = messageObject.runId;
   const installationId = messageObject.installationId.toString();
   const repoOwner = messageObject.repoOwner;
   const repoToClone = messageObject.repoToClone;
@@ -182,7 +197,7 @@ app.post("/run_ci", async (req, res) => {
 
   console.log("Execution status: ", executionStatus);
   await updateStatus(octokitClient, repoOwner, repoToClone, sha, executionStatus, statusMessage);
-  await updateDBStatus(executionStatus);
+  await updateDBStatus(runId, executionStatus);
 
   res.status(200).send("OK");
 });
