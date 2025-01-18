@@ -48,6 +48,7 @@ const updateStatus = async (octokitClient, repoOwner, repoToClone, sha, executio
 }
 
 const updateDBStatus = async (runId, executionStatus) => {
+  console.log("In updateDBStatus, RUNS_TABLE_NAME=", process.env.RUNS_TABLE_NAME, ", runId=", runId, ", executionStatus=", executionStatus);
   let updateCount;
   try {
     updateCount = await knex(process.env.RUNS_TABLE_NAME)
